@@ -1,3 +1,5 @@
+[![Build Status](https://drone.terabits.io/api/badges/hareeshbabu82ns/containerize/status.svg)](https://drone.terabits.io/hareeshbabu82ns/containerize)
+
 # React App
 - sample app to show containarizing React Web app
 - serving through Nginx
