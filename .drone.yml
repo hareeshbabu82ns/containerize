@@ -13,23 +13,30 @@ steps:
     branch:
     - react-nginx
 
-- name: build docker image
-  image: docker:latest
-  volumes:
-    - name: docker_sock
-      path: /var/run/docker.sock
-  commands:
-    - echo '192.168.86.40 unraid registry.unraid' | tee -a /etc/hosts
-    - mkdir /etc/docker
-    # - echo "{"insecure-registries":["registry.unraid.33294"]}" >> /etc/docker/daemon.json
-    # - touch /etc/docker/daemon.json
-    # - echo "{ \"insecure-registries\": [\"registry.unraid.33294\"] }" | tee -a /etc/docker/daemon.json
-    # - systemctl status docker
-    # - service docker restart
-    # - docker system info
-    - cd react-nginx
-    - docker build --no-cache -t registry.unraid:33294/test/react-nginx:latest -f Dockerfile .
-    - docker push registry.unraid:33294/test/react-nginx:latest
+# - name: build docker image
+#   image: docker:latest
+#   volumes:
+#     - name: docker_sock
+#       path: /var/run/docker.sock
+#   commands:
+#     - echo '192.168.86.40 unraid registry.unraid' | tee -a /etc/hosts
+#     - mkdir /etc/docker
+#     # - docker system info
+#     - cd react-nginx
+#     - docker build --no-cache -t registry.unraid:33294/test/react-nginx:latest -f Dockerfile .
+#     - docker push registry.unraid:33294/test/react-nginx:latest
+
+- name: build plugins/docker image
+  image: plugins/docker
+  settings:
+    tags:
+      - latest
+    dockerfile: react-nginx/Dockerfile
+    repo: test/react-nginx    
+    registry: registry.unraid:33294
+    insecure: true
+    add_host:
+      - registry.unraid=192.168.86.40
 
 volumes:
   - name: docker_sock
