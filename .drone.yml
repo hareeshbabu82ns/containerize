@@ -2,7 +2,7 @@ kind: pipeline
 name: react-nginx
 
 steps:
-- name: test
+- name: react-nginx - test
   image: node:14-alpine
   commands:
   - ls -al
@@ -14,45 +14,86 @@ steps:
     - react-nginx
 
 # - name: build docker image
-#   image: docker:latest
-#   volumes:
-#     - name: docker_sock
-#       path: /var/run/docker.sock
-#   commands:
-#     - echo '192.168.86.40 unraid registry.unraid' | tee -a /etc/hosts
-#     - mkdir /etc/docker
-#     # - docker system info
-#     - cd react-nginx
-#     - docker build --no-cache -t registry.unraid:33294/test/react-nginx:latest -f Dockerfile .
-#     - docker push registry.unraid:33294/test/react-nginx:latest
+#   image: plugins/docker
+#   settings:
+#     registry: docker.terabits.io
+#     repo: test/react-nginx
+#     dockerfile: react-nginx/Dockerfile
+#     tags: [ "${DRONE_COMMIT_SHA:0:7}","latest" ]
+#  #  username:
+#  #    from_secret: docker_username
+#  #  password:
+#  #    from_secret: docker_password
 
-- name: build plugins/docker image
-  image: plugins/docker
+# For Custom Docker Registry
+- name: react-nginx - build docker image
+  image: docker:latest
+  volumes:
+    - name: docker_sock
+      path: /var/run/docker.sock
+  commands:
+    # - echo '192.168.86.40 unraid registry.unraid' | tee -a /etc/hosts
+    # - mkdir /etc/docker
+    # - docker system info
+    # - env
+    - cd react-nginx
+    - docker build --no-cache -t docker.terabits.io/test/react-nginx:latest -f Dockerfile .
+    - docker push docker.terabits.io/test/react-nginx:latest
+  when:
+    branch:
+    - react-nginx
+
+## Following works when publishing from root of the repository
+# - name: build plugins/docker image
+#   image: plugins/docker
+#   settings:
+#     tags:
+#       - latest
+#     # dockerfile: react-nginx/Dockerfile
+#     repo: test/react-nginx    
+#     registry: registry.unraid:33294
+#     insecure: true
+
+- name: react-nginx - deploy
+  image: sinlead/drone-kubectl
   settings:
-    tags:
-      - latest
-    dockerfile: react-nginx/Dockerfile
-    repo: test/react-nginx    
-    registry: registry.unraid:33294
-    insecure: true
-    add_host:
-      - registry.unraid=192.168.86.40
+    kubernetes_server:
+      from_secret: k8s_server
+    kubernetes_cert:
+      from_secret: k8s_cert
+    kubernetes_token:
+      from_secret: k8s_token
+  commands:
+    - cd react-nginx
+    - kubectl apply -f k8s/deployment-react-nginx.yaml
+    - kubectl rollout restart deployment/react-nginx
+  when:
+    branch:
+    - react-nginx
+
+# Finally common tasks for all steps
+- name: notify
+  image: plugins/slack
+  settings:
+    channel: pipelines
+    webhook:
+      from_secret: pipeline_notifier
+    icon_url: https://unsplash.it/48/48/?random
+    # image_url: https://unsplash.it/256/256/?random
+    template: >
+      {{#if build.pull }}
+        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}*: <https://github.com/{{ repo.owner }}/{{ repo.name }}/pull/{{ build.pull }}|Pull Request #{{ build.pull }}>
+      {{else}}
+        *{{#success build.status}}✔{{ else }}✘{{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }}* (type: `{{ build.event }}`)
+      {{/if}}
+      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+      Branch: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commits/{{ build.branch }}|{{ build.branch }}>
+      Author: {{ build.author }}
+      <{{ build.link }}|Visit build page ↗>
+  when:
+    status: [ success, failure ]
 
 volumes:
   - name: docker_sock
     host:
       path: /var/run/docker.sock
-
-# ---
-# kind: pipeline
-# name: test-on-arm64
-
-# platform:
-#   arch: arm64
-
-# steps:
-# - name: test
-#   image: node
-#   commands:
-#   - npm install
-#   - npm test

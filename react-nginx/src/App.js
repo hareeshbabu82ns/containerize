@@ -7,7 +7,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          React App serving from Nginx
+          React App serving from Nginx on K8S
         </p>
       </header>
     </div>
