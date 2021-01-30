@@ -31,11 +31,17 @@ steps:
   volumes:
     - name: docker_sock
       path: /var/run/docker.sock
+  environment:
+    DUSER:
+      from_secret: docker_user
+    DPASS:
+      from_secret: docker_pass
   commands:
     # - echo '192.168.86.40 unraid registry.unraid' | tee -a /etc/hosts
     # - mkdir /etc/docker
     # - docker system info
-    # - env
+    - env
+    - docker login -p $DPASS -u $DUSER docker.terabits.io
     - cd react-nginx
     - docker build --no-cache -t docker.terabits.io/test/react-nginx:latest -f Dockerfile .
     - docker push docker.terabits.io/test/react-nginx:latest
