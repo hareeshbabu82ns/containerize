@@ -16,9 +16,9 @@ $> docker push registry.unraid:33294/web/react-nginx:v0.0.1
 * fetch the credentials of the Service Account to be configured on Drone
 ```sh
 $> kubectl get serviceaccounts -A
-$> kubectl get sa rancher -n cattle-system -o jsonpath='{.secrets[*].name}'
-$> kubectl get -n cattle-system secret rancher-token-49xv9 -o jsonpath='{.data.ca\.crt}' && echo
-$> kubectl get -n cattle-system secret rancher-token-49xv9 -o jsonpath='{.data.token}' | base64 --decode && echo
+$> kubectl get sa deploy-bot -o jsonpath='{.secrets[*].name}'
+$> kubectl get secret deploy-bot-token-sn8jn -o jsonpath='{.data.ca\.crt}' && echo
+$> kubectl get secret deploy-bot-token-sn8jn -o jsonpath='{.data.token}' | base64 --decode && echo
 ```
 * __Note__: need a service account which has `Role` to create pods in the required namespace
 
@@ -32,8 +32,11 @@ $> drone info
 
 * validate deployment from local
 ```sh
-$> export KUBERNETES_SERVER=https://rancher.dev.kube.terabits.io/k8s/clusters/local
-$> export KUBERNETES_SERVER=https://192.168.86.50:41167
+# to get the address
+$> kubectl config view -o jsonpath='{range .clusters[*]}{.name}{"\t"}{.cluster.server}{"\n"}{end}'
+
+$> export KUBERNETES_SERVER=https://rancher.uat.kube.terabits.io/k8s/clusters/local
+$> export KUBERNETES_SERVER=https://192.168.86.74:46147
 $> export KUBERNETES_CERT=
 $> export KUBERNETES_TOKEN=
 
@@ -44,7 +47,14 @@ $> docker run --rm \
     -v $(pwd)/k8s:/data/k8s \
     sinlead/drone-kubectl apply -f /data/k8s/deployment-react-nginx.yaml
 
+# to avoid 502 certificate error - not recomended
 # --insecure-skip-tls-verify
+docker run --rm \
+    -e PLUGIN_KUBERNETES_SERVER=$KUBERNETES_SERVER \
+    -e PLUGIN_KUBERNETES_CERT=$KUBERNETES_CERT \
+    -e PLUGIN_KUBERNETES_TOKEN=$KUBERNETES_TOKEN \
+    -v $(pwd)/k8s:/data/k8s \
+    sinlead/drone-kubectl apply -f /data/k8s/deployment-react-nginx.yaml --insecure-skip-tls-verify
 ```
 
 * setup up per repo secrets

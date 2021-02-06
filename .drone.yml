@@ -71,8 +71,8 @@ steps:
       from_secret: k8s_token
   commands:
     - cd react-nginx
-    - kubectl apply -f k8s/deployment-react-nginx.yaml
-    - kubectl rollout restart deployment/react-nginx
+    - kubectl apply -f k8s/deployment-react-nginx.yaml --insecure-skip-tls-verify
+    - kubectl rollout restart deployment/react-nginx --insecure-skip-tls-verify
   when:
     branch:
     - react-nginx
