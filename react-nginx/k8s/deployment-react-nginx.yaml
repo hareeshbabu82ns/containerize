@@ -47,7 +47,7 @@ metadata:
   namespace: default
 spec:
   rules:
-  - host: rnginx.dev.kube.terabits.io
+  - host: rnginx.uat.kube.terabits.io
     http:
       paths:
       - pathType: Prefix
