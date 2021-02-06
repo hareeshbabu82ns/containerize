@@ -16,8 +16,9 @@ $> docker push registry.unraid:33294/web/react-nginx:v0.0.1
 * fetch the credentials of the Service Account to be configured on Drone
 ```sh
 $> kubectl get serviceaccounts -A
-$> kubectl get -n name-space secret deploy-token-xxxxx -o jsonpath='{.data.ca\.crt}' && echo
-$> kubectl get -n name-space secret deploy-token-xxxxx -o jsonpath='{.data.token}' | base64 --decode && echo
+$> kubectl get sa rancher -n cattle-system -o jsonpath='{.secrets[*].name}'
+$> kubectl get -n cattle-system secret rancher-token-49xv9 -o jsonpath='{.data.ca\.crt}' && echo
+$> kubectl get -n cattle-system secret rancher-token-49xv9 -o jsonpath='{.data.token}' | base64 --decode && echo
 ```
 * __Note__: need a service account which has `Role` to create pods in the required namespace
 
@@ -53,4 +54,10 @@ $> drone secret add user/repo --name docker_pass --data $FROM_ENV_VARIABLE
 $> drone secret add user/repo --name k8s_server --data $KUBERNETES_SERVER
 $> drone secret add user/repo --name k8s_cert --data $KUBERNETES_CERT
 $> drone secret add user/repo --name k8s_token --data $KUBERNETES_TOKEN
+```
+
+* setting secrets using ansible
+```sh
+$> ansible-playbook site.yml --tags "drone-cli"
+$> ansible-playbook site.yml --tags "drone-secrets"
 ```
