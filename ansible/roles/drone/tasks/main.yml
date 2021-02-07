@@ -12,6 +12,15 @@
     DRONE_SERVER: "{{drone_url}}"
     DRONE_TOKEN: "{{drone_api_key}}"
     KUBERNETES_SERVER: "{{k8s_server}}"
-    # KUBERNETES_SERVER: "https://192.168.86.50:41167"
     KUBERNETES_CERT: "{{k8s_cert}}"
     KUBERNETES_TOKEN:  "{{k8s_token}}"
+
+- include: set-secrets-local.yml
+  name: sets secrets from local kubeconfig
+  tags: drone-secrets-local
+  vars:
+    repo_user: hareeshbabu82ns
+    git_repo: containerize
+  environment:
+    DRONE_SERVER: "{{drone_url}}"
+    DRONE_TOKEN: "{{drone_api_key}}"    

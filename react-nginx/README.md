@@ -34,6 +34,7 @@ $> drone info
 ```sh
 # to get the address
 $> kubectl config view -o jsonpath='{range .clusters[*]}{.name}{"\t"}{.cluster.server}{"\n"}{end}'
+$> kubectl config view -o jsonpath='{.clusters[?(@.name=="k3d-utmp")].cluster.server}'
 
 $> export KUBERNETES_SERVER=https://rancher.uat.kube.terabits.io/k8s/clusters/local
 $> export KUBERNETES_SERVER=https://192.168.86.74:46147
@@ -70,4 +71,5 @@ $> drone secret add user/repo --name k8s_token --data $KUBERNETES_TOKEN
 ```sh
 $> ansible-playbook site.yml --tags "drone-cli"
 $> ansible-playbook site.yml --tags "drone-secrets"
+$> ansible-playbook site.yml --tags "drone-secrets-local"
 ```
